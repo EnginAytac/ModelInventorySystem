@@ -12,7 +12,7 @@ Bu dosya, sistem genelinde kullanılan temel ayarları ve metot seçimlerini iç
 #   - "embedding" : Semantik benzerlik (sentence-transformers)
 #   - "llm"       : LLM tabanlı mantıksal analiz (mock/simülasyon)
 # ──────────────────────────────────────────────────────────────
-COMPARE_METHOD: str = "embedding"
+COMPARE_METHOD: str = "text"
 
 # ──────────────────────────────────────────────────────────────
 # Benzerlik Eşik Değeri (Threshold)
@@ -29,7 +29,7 @@ INVENTORY_PATH: str = "data/inventory.csv"
 # ──────────────────────────────────────────────────────────────
 # Embedding Model Ayarları
 # ──────────────────────────────────────────────────────────────
-EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+EMBEDDING_MODEL: str = "paraphrase-multilingual-MiniLM-L12-v2"
 
 # ──────────────────────────────────────────────────────────────
 # LLM API Ayarları (Şimdilik mock olarak çalışır)

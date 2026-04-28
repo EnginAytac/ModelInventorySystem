@@ -81,9 +81,18 @@ def _get_embedding_model():
     """Sentence-transformer modelini tembel yükleme ile döndürür."""
     global _embedding_model
     if _embedding_model is None:
+        import streamlit as st
+        
+        # Kullanıcıya indirme/yükleme işlemi için bilgi veriyoruz (Bittiğinde kaybolacak)
+        placeholder = st.empty()
+        placeholder.info("📦 **Yapay Zeka Modeli Hazırlanıyor...** İlk kullanım olduğu için çok dilli semantik model (yaklaşık 470 MB) indiriliyor veya belleğe yükleniyor. Bu işlem 1-2 dakika sürebilir, lütfen bekleyiniz.")
+        
         from sentence_transformers import SentenceTransformer
-
         _embedding_model = SentenceTransformer(EMBEDDING_MODEL)
+        
+        # Yükleme bittiğinde bilgi mesajını temizle
+        placeholder.empty()
+        
     return _embedding_model
 
 
@@ -116,18 +125,24 @@ def compute_embedding_similarity(query: str, inventory_df: pd.DataFrame) -> pd.D
     # Sorgu embeddingi
     query_embedding = model.encode(query, convert_to_numpy=True)
 
-    # Embedding performansını artırmak için SADECE Model Amacını vektörize ediyoruz.
-    # Kullanıcılar isim değil işlem ("kredi riski hesaplama" vb.) yazdığı için
-    # model adı gürültü (noise) yaratıyor.
-    inventory_texts = inventory_df["Model_Amacı"].astype(str).tolist()
+    # Ad ve Amaç metinlerini listelere ayır
+    name_texts = inventory_df["Model_Adı"].astype(str).tolist()
+    purpose_texts = inventory_df["Model_Amacı"].astype(str).tolist()
 
-    # Toplu embedding
-    inventory_embeddings = model.encode(inventory_texts, convert_to_numpy=True)
+    # İki alanı ayrı ayrı vektörize et (Bu sayede ağırlıkları tam kontrol edebiliriz)
+    name_embeddings = model.encode(name_texts, convert_to_numpy=True)
+    purpose_embeddings = model.encode(purpose_texts, convert_to_numpy=True)
 
     results = []
     for idx, row in inventory_df.iterrows():
-        sim = _cosine_similarity(query_embedding, inventory_embeddings[idx])
-        score = round(sim * 100, 1)  # Yüzdelik dönüşüm
+        # Ayrı ayrı kosinüs benzerliklerini hesapla
+        name_sim = _cosine_similarity(query_embedding, name_embeddings[idx])
+        purpose_sim = _cosine_similarity(query_embedding, purpose_embeddings[idx])
+        
+        # Ağırlıklı birleştirme: İsim %15, Amaç %85 etki etsin
+        combined_sim = (name_sim * 0.15) + (purpose_sim * 0.85)
+        
+        score = round(combined_sim * 100, 1)  # Yüzdelik dönüşüm
 
         results.append(
             {
