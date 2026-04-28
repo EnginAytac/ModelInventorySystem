@@ -35,8 +35,8 @@ def compute_text_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFr
     skoru hesaplar ve ağırlıklı ortalama ile tek bir skor üretir.
 
     Ağırlıklar:
-        - Model Adı  : %40
-        - Model Amacı : %60
+        - Model Adı  : %15
+        - Model Amacı : %85
 
     Args:
         query: Kullanıcının girdiği yeni model talep açıklaması.
@@ -163,116 +163,100 @@ def compute_embedding_similarity(query: str, inventory_df: pd.DataFrame) -> pd.D
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-def _build_llm_prompt(query: str, model_name: str, model_purpose: str) -> str:
-    """LLM'e gönderilecek karşılaştırma promptunu oluşturur."""
-    return f"""Sen bir bankacılık model yönetimi uzmanısın.
-
-Aşağıda yeni bir model talebi ve mevcut envanterdeki bir model bilgisi verilmiştir.
-Bu iki modelin birbirinin mükerrer veya çok benzeri olup olmadığını analiz et.
-
-### Yeni Model Talebi:
-{query}
-
-### Mevcut Envanter Modeli:
-- **Model Adı:** {model_name}
-- **Model Amacı:** {model_purpose}
-
-### Görev:
-1. İki modelin fonksiyonel örtüşme oranını 0-100 arasında bir skor ile değerlendir.
-2. Değerlendirme yaparken "Model Amacı"na %90, "Model Adı"na %10 ağırlık ver.
-3. Kısa bir gerekçe yaz.
-
-Yanıtını şu JSON formatında ver:
-{{"skor": <0-100>, "gerekce": "<kısa açıklama>"}}
-"""
-
-
-def _mock_llm_response(query: str, model_name: str, model_purpose: str) -> dict:
-    """
-    LLM API çağrısını simüle eder.
-
-    Gerçek bir API entegrasyonu olmadığında, metin benzerliğine dayalı
-    deterministik bir mock skor üretir. Hash tabanlı deterministik
-    rastgelelik kullanarak tutarlı sonuçlar sağlar.
-    """
-    # Deterministik skor üretimi (aynı girdi → aynı skor)
-    combined = f"{query}|{model_name}|{model_purpose}"
-    hash_val = int(hashlib.md5(combined.encode()).hexdigest()[:8], 16)
-
-    # Fuzzy matching bazlı amaca yönelik temel skor (Model adının ağırlığı çok düşük)
-    name_score = fuzz.token_set_ratio(query.lower(), model_name.lower())
-    purpose_score = fuzz.token_set_ratio(query.lower(), model_purpose.lower())
-    base_score = (name_score * 0.10) + (purpose_score * 0.90)
-
-    # Hash'e dayalı küçük varyasyon (-5, +5 arası)
-    variation = (hash_val % 11) - 5
-    score = max(0, min(100, base_score + variation))
-
-    # Gerekçe şablonları
-    if score >= 80:
-        gerekce = (
-            f"Yeni talep ile '{model_name}' arasında yüksek fonksiyonel örtüşme tespit edildi. "
-            "Her iki model de benzer veri kaynaklarını kullanarak aynı iş problemini çözmeye yönelik."
-        )
-    elif score >= 60:
-        gerekce = (
-            f"Yeni talep ile '{model_name}' arasında kısmi benzerlik mevcut. "
-            "Modellerin kapsamları örtüşse de farklı metodolojiler veya hedef kitleler söz konusu olabilir."
-        )
-    elif score >= 40:
-        gerekce = (
-            f"Yeni talep ile '{model_name}' arasında sınırlı benzerlik bulunmakta. "
-            "Aynı alan içinde farklı problemlere odaklanıyorlar."
-        )
-    else:
-        gerekce = (
-            f"Yeni talep ile '{model_name}' arasında anlamlı bir benzerlik tespit edilmedi. "
-            "Modeller farklı iş alanlarına ve farklı problemlere yönelik."
-        )
-
-    return {"skor": score, "gerekce": gerekce}
-
-
 def compute_llm_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
     """
-    LLM tabanlı mantıksal benzerlik analizi (Mock / Simülasyon).
-
-    Gerçek bir LLM API entegrasyonu için prompt yapısını gösterir.
-    Şu an mock yanıtlar döndürür; gerçek API anahtarı eklendiğinde
-    _mock_llm_response yerine gerçek API çağrısı yapılabilir.
-
-    Args:
-        query: Kullanıcının girdiği yeni model talep açıklaması.
-        inventory_df: Envanter DataFrame'i.
-
-    Returns:
-        Benzerlik skoru ve LLM gerekçesi eklenmiş DataFrame.
+    Google Gemini (LLM) tabanlı mantıksal benzerlik analizi (Toplu İşlem).
     """
-    results = []
+    import json
+    import google.generativeai as genai
+    from app.config import LLM_API_KEY, LLM_MODEL
 
+    if not LLM_API_KEY:
+        raise ValueError("LLM_API_KEY bulunamadı. Lütfen config.py dosyasını kontrol ediniz.")
+
+    genai.configure(api_key=LLM_API_KEY)
+    
+    # Gemini 1.5 Flash - JSON modu aktif
+    model = genai.GenerativeModel(
+        LLM_MODEL,
+        generation_config={"response_mime_type": "application/json"}
+    )
+
+    # Modelleri toplu (batch) prompt için listele
+    inventory_data = []
     for _, row in inventory_df.iterrows():
-        model_name = str(row["Model_Adı"])
-        model_purpose = str(row["Model_Amacı"])
-
-        # Prompt oluştur (loglama / debug için saklanabilir)
-        _prompt = _build_llm_prompt(query, model_name, model_purpose)
-
-        # Mock LLM yanıtı (gerçek entegrasyonda API çağrısı yapılır)
-        response = _mock_llm_response(query, model_name, model_purpose)
-
-        results.append(
-            {
-                "Model_ID": row["Model_ID"],
-                "Model_Adı": row["Model_Adı"],
-                "Model_Amacı": row["Model_Amacı"],
-                "Benzerlik_Skoru": response["skor"],
-                "LLM_Gerekçe": response["gerekce"],
-            }
+        inventory_data.append(
+            f'- {{"Model_ID": "{row["Model_ID"]}", "Model_Adı": "{row["Model_Adı"]}", "Model_Amacı": "{row["Model_Amacı"]}"}}'
         )
+    
+    inventory_str = "\n".join(inventory_data)
 
-    result_df = pd.DataFrame(results)
-    result_df = result_df.sort_values("Benzerlik_Skoru", ascending=False).reset_index(drop=True)
-    return result_df
+    prompt = f"""Sen Kuveyt Türk Bankası için çalışan bir Yapay Zeka Model Yönetim Uzmanısın.
+Görev: Kullanıcının talep ettiği YENİ MODEL ile envanterdeki MEVCUT MODELLERİ karşılaştırmak.
+
+[YENİ MODEL TALEBİ]:
+{query}
+
+[MEVCUT MODELLER ENVANTERİ (Toplam {len(inventory_df)} Model)]:
+{inventory_str}
+
+Lütfen yukarıdaki TÜM mevcut modelleri dikkatlice incele.
+Her bir mevcut model için, yeni taleple olan benzerlik skorunu (0-100 arası) hesapla.
+Kural: Model amacına %90, ismine %10 ağırlık ver.
+
+PUANLAMA KRİTERİ VE GEREKÇE UZUNLUĞU (HIZ OPTİMİZASYONU): 
+1. Birebir aynı iş problemine hizmet eden modellere %85-100 arası puan ver.
+2. Bankacılıkta tematik olarak birbirine benzeyen ancak UYGULAMA ALANLARI farklı olan (Örn: İkisi de güvenlik modelidir ama biri Kredi Kartı Sahteciliği, diğeri Kara Para Aklamadır) "kısmen benzer" modellere %40-65 arası daha düşük ve dengeli puan ver. İkisi de aynı ana konuya ait diye yüksek puan verme!
+3. Amaçları FARKLI olan modellere yüksek puan vermekten KESİNLİKLE kaçın. İlgisiz veya alakasız modellere katı davranarak %0-35 arası puan ver.
+
+HIZ VE TOKEN OPTİMİZASYONU (ÇOK ÖNEMLİ):
+- Skoru %40 ve üzerinde olan modeller için 1-2 cümlelik normal açıklayıcı bir gerekçe yaz.
+- Skoru %40'ın altında olan modeller için uzun cümleler kurma! Vakitten tasarruf etmek için MAKSİMUM 3-5 KELİMELİK çok kısa ve öz gerekçeler yaz (Örn: "Odak alanları tamamen farklı", "Farklı departmanlara hizmet ediyor", "Alakasız bir veri modeli").
+
+Yanıtın KESİNLİKLE aşağıdaki JSON formatında geçerli bir LİSTE olmalıdır. JSON harici hiçbir metin yazma:
+[
+  {{"Model_ID": "MOD-1", "skor": 45, "gerekce": "Kısa ve net Türkçe açıklama..."}},
+  ... (TÜM modeller için eksiksiz liste)
+]
+"""
+
+    try:
+        response = model.generate_content(prompt)
+        raw_text = response.text.strip()
+        
+        # Markdown bloklarını temizle (bazen model yine de koyabiliyor)
+        if raw_text.startswith("```json"):
+            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+        elif raw_text.startswith("```"):
+            raw_text = raw_text.replace("```", "").strip()
+            
+        json_results = json.loads(raw_text)
+        llm_df = pd.DataFrame(json_results)
+        
+        # Orijinal DataFrame ile birleştir (Model_ID bazlı)
+        merged_df = pd.merge(inventory_df, llm_df, on="Model_ID", how="left")
+        
+        # Boş kalanlar olursa 0 ata
+        merged_df["skor"] = merged_df["skor"].fillna(0).astype(int)
+        merged_df["gerekce"] = merged_df["gerekce"].fillna("LLM bu modeli değerlendiremedi.")
+        
+        # UI ile uyumlu hale getir
+        merged_df = merged_df.rename(columns={
+            "skor": "Benzerlik_Skoru", 
+            "gerekce": "LLM_Gerekçe"
+        })
+        
+        merged_df = merged_df.sort_values("Benzerlik_Skoru", ascending=False).reset_index(drop=True)
+        return merged_df
+
+    except Exception as e:
+        import streamlit as st
+        st.error(f"LLM API Hatası: {str(e)}")
+        # Uygulama çökmesin diye boş DataFrame dön
+        empty_df = inventory_df.copy()
+        empty_df["Benzerlik_Skoru"] = 0
+        empty_df["LLM_Gerekçe"] = "API Hatası."
+        return empty_df
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

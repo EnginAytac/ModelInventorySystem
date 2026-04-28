@@ -32,10 +32,10 @@ INVENTORY_PATH: str = "data/inventory.csv"
 EMBEDDING_MODEL: str = "paraphrase-multilingual-MiniLM-L12-v2"
 
 # ──────────────────────────────────────────────────────────────
-# LLM API Ayarları (Şimdilik mock olarak çalışır)
+# LLM API Ayarları (Gemini 2.5 Flash)
 # ──────────────────────────────────────────────────────────────
-LLM_API_KEY: str = ""
-LLM_MODEL: str = "gpt-4"
+LLM_API_KEY: str = "AIzaSyDupleiJrfsYhaAC6oLG_yve1jjVRpsiIw"
+LLM_MODEL: str = "gemini-2.5-flash"
 
 # ──────────────────────────────────────────────────────────────
 # Uygulama Genel Ayarları

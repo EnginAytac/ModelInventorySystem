@@ -59,7 +59,7 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
     max-width: 1100px;
 }
 
-/* ── Yeni, Şık Kuveyt Türk Başlık Alanı (Corporate Style) ── */
+/* ── Kuveyt Türk Başlık Alanı ── */
 .header-card {
     background-color: #ffffff;
     border-radius: 12px;
@@ -508,25 +508,25 @@ if analyze_btn:
                 score_class = get_score_class(score)
 
                 card_html = f"""
-                <div class="result-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div style="flex:1; padding-right: 1rem;">
-                            <p class="result-model-name">{row['Model_Adı']}</p>
-                            <span class="result-model-id">{row['Model_ID']}</span>
-                            <p class="result-purpose">{row['Model_Amacı']}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <span class="score-badge {score_class}">%{score}</span>
-                        </div>
-                    </div>
-                """
+<div class="result-card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div style="flex:1; padding-right: 1rem;">
+            <p class="result-model-name">{row['Model_Adı']}</p>
+            <span class="result-model-id">{row['Model_ID']}</span>
+            <p class="result-purpose">{row['Model_Amacı']}</p>
+        </div>
+        <div style="text-align: right;">
+            <span class="score-badge {score_class}">%{score}</span>
+        </div>
+    </div>
+"""
 
                 if selected_method == "llm" and "LLM_Gerekçe" in row:
                     card_html += f"""
-                    <div class="llm-rationale">
-                        <strong>AI Analiz Yorumu:</strong> {row['LLM_Gerekçe']}
-                    </div>
-                    """
+<div class="llm-rationale">
+    <strong>AI Analiz Yorumu:</strong> {row['LLM_Gerekçe']}
+</div>
+"""
 
                 card_html += "</div>"
                 st.markdown(card_html, unsafe_allow_html=True)
