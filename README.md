@@ -9,24 +9,24 @@
 
 ---
 
-## Yönetici Özeti (Executive Summary)
+## Proje Özeti
 
-Büyük ölçekli finansal kuruluşlarda, birden fazla iş birimi tarafından bağımsız olarak başlatılan model geliştirme projeleri, farkında olmadan birbirinin işlevsel kopyasını üretebilmektedir. Bu **mükerrer efor** sorunu; bütçe ve zaman kaybının ötesinde, model yaşam döngüsü yönetimini karmaşıklaştırmakta, regülasyon uyumunu (BDDK, SPK) zorlaştırmakta ve kurumun yapay zeka portföyünü anlamsız biçimde şişirmektedir.
+Yeni bir yapay zeka veya makine öğrenmesi modeli geliştirilmek istendiğinde, bu talebin kurumda zaten var olan bir modelle örtüşüp örtüşmediğini anlamak kritik önem taşır. Mükerrer geliştirme çalışmaları; gereksiz bütçe harcamasına, model portföyünün şişmesine ve bakım yükünün artmasına yol açar.
 
-**Model Envanteri Benzerlik Analiz Sistemi**, Kuveyt Türk Yapay Zeka Laboratuvarı tarafından bu problemi çözmek amacıyla geliştirilmiş bir karar destek platformudur. Sistem; yeni bir model geliştirme talebi geldiğinde, bu talebi mevcut **35 kayıtlı modeli** kapsayan canlı envantere karşı üç farklı yapay zeka tekniğiyle otomatik olarak analiz eder ve olası mükerrerlik riskini %0–100 arasında bir skor ile raporlar.
+**Model Envanteri Benzerlik Analiz Sistemi**, yeni bir model talebini mevcut **35 kayıtlı modeli** kapsayan envantere karşı otomatik olarak karşılaştıran bir karar destek aracıdır. Talep, üç farklı yapay zeka yöntemiyle analiz edilerek olası mükerrerlik riski %0–100 arasında bir skor ile raporlanır.
 
-**Temel iş değerleri:**
+**Temel özellikler:**
 
-- ⏱️ Potansiyel mükerrer projeleri ön değerlendirme aşamasında tespit ederek **haftalarca sürebilecek kayıpları önler**
-- 💰 Gereksiz model geliştirme bütçelerini elimine ederek **kaynak verimliliğini artırır**
-- 📋 Model portföyünü denetlenebilir ve sürdürülebilir kılar, **regülasyon uyumunu kolaylaştırır**
-- 🤖 Manuel inceleme yükünü azaltarak AI Lab ekibinin **stratejik işlere odaklanmasını** sağlar
+- ⚡ Üç farklı analiz yöntemi: Fuzzy Matching, Semantik Embedding ve LLM tabanlı mantıksal karşılaştırma
+- 📊 Ayarlanabilir benzerlik eşiği ile risk sınıflandırması
+- 🔍 Tüm envanter karşılaştırma sonuçlarını interaktif tablo ile görüntüleme
+- 🤖 LLM yönteminde her eşleşme için insan tarafından denetlenebilir Türkçe gerekçe
 
 ---
 
 ## Çözüm Mimarisi — 3 Analiz Case'i
 
-Sistem, farklı senaryolara ve kaynak kısıtlarına göre üç bağımsız benzerlik motoru sunar. Her motor, `analyze_similarity()` dispatcher fonksiyonu üzerinden tek bir arayüzden çağrılır.
+Sistem, farklı senaryolara ve kaynak kısıtlarına göre üç bağımsız benzerlik yöntemi sunar. Her yöntem, `analyze_similarity()` dispatcher fonksiyonu üzerinden tek bir arayüzden çağrılır.
 
 ### Case 1 — 📝 Text: Fuzzy String Matching
 
@@ -96,7 +96,7 @@ Sistem, farklı senaryolara ve kaynak kısıtlarına göre üç bağımsız benz
 | Infrastructure Maliyeti | 🟢 Sıfır | 🟡 Orta | 🔴 API Maliyeti |
 | Açıklanabilirlik | 🟡 Düşük | 🟡 Düşük | 🟢 Yüksek |
 | Offline Çalışma | ✅ | ✅ | ❌ |
-| Çok Dilli Destek | 🟡 Kısmi | ✅ | ✅ |
+| Çok Dilli Destek | ✅ | ✅ | ✅ |
 
 ---
 
@@ -106,10 +106,10 @@ Sistem, farklı senaryolara ve kaynak kısıtlarına göre üç bağımsız benz
 |---|---|---|---|
 | **Dil** | Python | 3.12+ | Uygulama dili |
 | **UI Framework** | Streamlit | 1.56.0 | Web arayüzü |
-| **Fuzzy Matching** | thefuzz | 0.22.1 | Case 1 motoru |
-| **Semantik Model** | sentence-transformers | 3.4.1 | Case 2 motoru |
+| **Fuzzy Matching** | thefuzz | 0.22.1 | Case 1 yöntemi |
+| **Semantik Model** | sentence-transformers | 3.4.1 | Case 2 yöntemi |
 | **Derin Öğrenme** | PyTorch | 2.11.0 | Embedding altyapısı |
-| **LLM API** | Groq (Llama 3.3 70B) | — | Case 3 motoru |
+| **LLM API** | Groq (Llama 3.3 70B) | — | Case 3 yöntemi |
 | **Veri İşleme** | pandas / numpy | 2.2.3 / — | DataFrame operasyonları |
 | **Konfigürasyon** | Streamlit Secrets | — | Güvenli API yönetimi |
 
@@ -123,7 +123,7 @@ ModelInventorySystem/
 ├── app/                          # Ana uygulama paketi
 │   ├── __init__.py               # Paket tanım dosyası
 │   ├── config.py                 # Merkezi konfigürasyon ve sabitler
-│   ├── similarity.py             # 3 benzerlik motoru + dispatcher
+│   ├── similarity.py             # 3 benzerlik yöntemi + dispatcher
 │   └── main.py                   # Streamlit arayüzü (UI katmanı)
 │
 ├── data/
@@ -141,7 +141,7 @@ ModelInventorySystem/
 **Modül sorumlulukları:**
 
 - **`config.py`** — `COMPARE_METHOD`, `THRESHOLD`, `EMBEDDING_MODEL`, `LLM_MODEL` gibi tüm sistem parametrelerini ve `_resolve_llm_api_key()` ile güvenli API anahtar çözümlemesini barındırır.
-- **`similarity.py`** — `compute_text_similarity()`, `compute_embedding_similarity()`, `compute_llm_similarity()` motorlarını ve `analyze_similarity()` dispatcher'ını içerir. UI katmanından tamamen bağımsızdır.
+- **`similarity.py`** — `compute_text_similarity()`, `compute_embedding_similarity()`, `compute_llm_similarity()` fonksiyonlarını ve `analyze_similarity()` dispatcher'ını içerir. UI katmanından tamamen bağımsızdır.
 - **`main.py`** — Streamlit sayfa yapılandırması, CSS tema, sidebar kontrolleri, girdi formu ve sonuç render mantığını yönetir. Hiçbir iş mantığı içermez.
 
 ---
@@ -224,7 +224,7 @@ Uygulama tarayıcınızda otomatik açılacaktır: **`http://localhost:8501`**
 
 | Parametre | Varsayılan | Açıklama |
 |---|---|---|
-| `COMPARE_METHOD` | `"text"` | Varsayılan karşılaştırma motoru |
+| `COMPARE_METHOD` | `"text"` | Varsayılan karşılaştırma yöntemi |
 | `THRESHOLD` | `70` | Mükerrer risk eşiği (%) |
 | `EMBEDDING_MODEL` | `"paraphrase-multilingual-MiniLM-L12-v2"` | Çok dilli semantik model |
 | `LLM_MODEL` | `"llama-3.3-70b-versatile"` | Groq üzerindeki LLM modeli |
