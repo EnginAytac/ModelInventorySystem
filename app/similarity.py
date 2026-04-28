@@ -198,14 +198,15 @@ Lütfen yukarıdaki TÜM mevcut modelleri dikkatlice incele.
 Her bir mevcut model için, yeni taleple olan benzerlik skorunu (0-100 arası) hesapla.
 Kural: Model amacına %90, ismine %10 ağırlık ver.
 
-PUANLAMA KRİTERİ VE GEREKÇE UZUNLUĞU (HIZ OPTİMİZASYONU): 
-1. Birebir aynı iş problemine hizmet eden modellere %85-100 arası puan ver.
-2. Bankacılıkta tematik olarak birbirine benzeyen ancak UYGULAMA ALANLARI farklı olan (Örn: İkisi de güvenlik modelidir ama biri Kredi Kartı Sahteciliği, diğeri Kara Para Aklamadır) "kısmen benzer" modellere %40-65 arası daha düşük ve dengeli puan ver. İkisi de aynı ana konuya ait diye yüksek puan verme!
-3. Amaçları FARKLI olan modellere yüksek puan vermekten KESİNLİKLE kaçın. İlgisiz veya alakasız modellere katı davranarak %0-35 arası puan ver.
+PUANLAMA KRİTERİ VE GEREKÇE UZUNLUĞU:
+1. Birebir aynı veya çok büyük ölçüde örtüşen iş problemine hizmet eden modellere %80-100 arası yüksek puan ver.
+2. Belirli fonksiyonları veya kullanım alanları (domain) kesişen, tematik olarak benzer modellere %40-75 arası orta düzey puanlar ver. (Örn: Biri kredi kartı sahteciliği, diğeri POS sahteciliği ise %60-70 civarı).
+3. Çok ufak tefek mantıksal veya yöntemsel benzerlikleri olan modellere %15-35 arası düşük puanlar ver.
+4. Hiçbir şekilde ilgisi olmayan modellere %0-10 arası puan ver.
+ÖNEMLİ KURAL: Lütfen sadece 0 ve 95 gibi uç değerler kullanmaktan kaçın. Benzerlik seviyesine göre 10, 25, 45, 60, 80 gibi ara değerleri ve geniş bir puan yelpazesini kullan.
 
-HIZ VE TOKEN OPTİMİZASYONU (ÇOK ÖNEMLİ):
-- Skoru %40 ve üzerinde olan modeller için 1-2 cümlelik normal açıklayıcı bir gerekçe yaz.
-- Skoru %40'ın altında olan modeller için uzun cümleler kurma! Vakitten tasarruf etmek için MAKSİMUM 3-5 KELİMELİK çok kısa ve öz gerekçeler yaz (Örn: "Odak alanları tamamen farklı", "Farklı departmanlara hizmet ediyor", "Alakasız bir veri modeli").
+HIZ VE TOKEN OPTİMİZASYONU:
+- Tüm modeller için çok kısa, 1-2 cümlelik (en fazla 10-15 kelime) gerekçeler yaz. "Kullanım alanları farklı", "Kısmi örtüşme var", "Aynı amaca hizmet ediyor" gibi net ifadeler kullan.
 
 Yanıtın KESİNLİKLE aşağıdaki JSON formatında geçerli bir JSON objesi olmalıdır. JSON harici hiçbir metin yazma:
 {{

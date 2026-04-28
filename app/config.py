@@ -44,7 +44,7 @@ except Exception:
     # Lokal ortamda veya kasa bulunamazsa çevre değişkenlerinden okur
     LLM_API_KEY: str = os.environ.get("LLM_API_KEY", "")
 
-LLM_MODEL: str = "llama-3.1-8b-instant"
+LLM_MODEL: str = "llama-3.3-70b-versatile"
 
 # ──────────────────────────────────────────────────────────────
 # Uygulama Genel Ayarları
