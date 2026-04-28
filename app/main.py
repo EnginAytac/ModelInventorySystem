@@ -66,7 +66,7 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
     padding: 2.5rem 2rem;
     margin-bottom: 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    border-top: 5px solid #00a884;
+    border-top: 5px solid #16a086;
     border-bottom: 1px solid #eaebec;
     border-left: 1px solid #eaebec;
     border-right: 1px solid #eaebec;
@@ -93,7 +93,7 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
     letter-spacing: -0.5px !important;
 }
 .header-title-accent {
-    color: #00a884;
+    color: #16a086;
 }
 .header-subtitle {
     color: #555555 !important;
@@ -127,17 +127,17 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
     padding: 1.5rem 1rem;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    border-bottom: 3px solid #00a884;
+    border-bottom: 3px solid #16a086;
     transition: transform 0.2s ease;
 }
 .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,168,132,0.1);
+    box-shadow: 0 6px 12px rgba(22,160,134,0.1);
 }
 .stat-value {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #00a884;
+    color: #16a086;
     margin: 0 0 0.2rem 0;
 }
 .stat-label {
@@ -160,7 +160,7 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
     transition: all 0.2s;
 }
 .result-card:hover {
-    border-left-color: #00a884;
+    border-left-color: #16a086;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 .result-model-name {
@@ -207,10 +207,10 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
 .warning-box p { color: #555555; margin: 0; font-size: 0.9rem; line-height: 1.5; }
 
 .success-box {
-    background: #f1f9f5; border: 1px solid #c8e6c9; border-left: 4px solid #00a884;
+    background: #f1f9f5; border: 1px solid #c8e6c9; border-left: 4px solid #16a086;
     border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0;
 }
-.success-box h4 { color: #00896b; margin: 0 0 0.3rem 0; font-size: 1.05rem; font-weight: 700; }
+.success-box h4 { color: #12826c; margin: 0 0 0.3rem 0; font-size: 1.05rem; font-weight: 700; }
 .success-box p { color: #555555; margin: 0; font-size: 0.9rem; line-height: 1.5; }
 
 .llm-rationale {
@@ -221,8 +221,8 @@ p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
 
 /* ── Sidebar İyileştirmeleri ── */
 [data-testid="stSidebar"] {
-    background-color: #009e7e;
-    background-image: linear-gradient(180deg, #008a6e 0%, #00a884 100%);
+    background-color: #14917a;
+    background-image: linear-gradient(180deg, #14917a 0%, #16a086 100%);
 }
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3,
@@ -267,19 +267,19 @@ button[kind="header"]:hover {
 
 /* ── Buton ve Girdiler ── */
 .stButton > button[kind="primary"] {
-    background-color: #f7941e !important;
+    background-color: #ff9500 !important;
     border: none !important;
     color: #ffffff !important;
     font-weight: 700 !important;
     border-radius: 8px !important;
     padding: 0.6rem 2rem !important;
     transition: all 0.2s ease !important;
-    box-shadow: 0 4px 6px rgba(247, 148, 30, 0.2) !important;
+    box-shadow: 0 4px 6px rgba(255, 149, 0, 0.2) !important;
     font-size: 0.95rem !important;
 }
 .stButton > button[kind="primary"]:hover {
-    background-color: #e8850e !important;
-    box-shadow: 0 6px 12px rgba(247, 148, 30, 0.3) !important;
+    background-color: #e68600 !important;
+    box-shadow: 0 6px 12px rgba(255, 149, 0, 0.3) !important;
     transform: translateY(-1px) !important;
 }
 
@@ -292,8 +292,8 @@ button[kind="header"]:hover {
     padding: 1rem !important;
 }
 .stTextArea textarea:focus {
-    border-color: #00a884 !important;
-    box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.2) !important;
+    border-color: #16a086 !important;
+    box-shadow: 0 0 0 2px rgba(22, 160, 134, 0.2) !important;
 }
 
 .custom-divider {
