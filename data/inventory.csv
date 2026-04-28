@@ -1,0 +1,36 @@
+Model_ID,Model_Adı,Model_Amacı
+MDL-001,Kredi Skorlama Modeli,Bireysel müşterilerin kredi başvurularında temerrüt olasılığını tahmin ederek kredi skorunu hesaplama
+MDL-002,Müşteri Churn Tahmini,Mevcut müşterilerin bankayı terk etme olasılığını makine öğrenmesi ile tahmin etme
+MDL-003,Dolandırıcılık Tespit Modeli,Kredi kartı ve EFT işlemlerinde anormal aktiviteleri gerçek zamanlı tespit etme
+MDL-004,Kredi Temerrüt Tahmini,Kurumsal ve bireysel kredilerde geri ödeme yapamama riskini öngörme
+MDL-005,Müşteri Segmentasyonu,Banka müşterilerini davranışsal ve demografik özelliklerine göre kümeleme
+MDL-006,Çapraz Satış Öneri Motoru,Mevcut ürün portföyündeki boşluklara göre müşteriye uygun finansal ürün önerme
+MDL-007,Anti-Money Laundering (AML) Modeli,Kara para aklama şüphesi taşıyan işlem örüntülerini otomatik tespit etme
+MDL-008,Piyasa Riski VaR Modeli,Portföydeki finansal enstrümanların piyasa riskini Value-at-Risk yöntemiyle hesaplama
+MDL-009,Operasyonel Risk Skorlama,Banka süreçlerindeki operasyonel risk olaylarını sınıflandırma ve skorlama
+MDL-010,Müşteri Yaşam Boyu Değeri (CLV),Her bir müşterinin bankaya sağlayacağı tahmini toplam geliri hesaplama
+MDL-011,NLP Şikayet Sınıflandırma,Müşteri şikayetlerini doğal dil işleme ile otomatik kategorize etme
+MDL-012,Chatbot Niyet Analizi,Dijital bankacılık chatbotunda müşteri mesajlarının niyetini anlama ve yönlendirme
+MDL-013,Kredi Kartı Fraud Detection,Kredi kartı harcamalarında sahtecilik tespiti için anomali analizi yapma
+MDL-014,Gelir Tahmini Modeli,Kurumsal bankacılık müşterilerinin gelecek dönem gelirlerini tahmin etme
+MDL-015,Portföy Optimizasyonu,Yatırım portföyünde risk-getiri dengesini optimize eden varlık dağılımı yapma
+MDL-016,Müşteri Kaybı Erken Uyarı,Müşteri aktivite metriklerindeki düşüşleri izleyerek kaybı önceden uyarma
+MDL-017,KYC Doküman Doğrulama,Müşteri tanıma (KYC) sürecinde kimlik belgelerini OCR ve AI ile doğrulama
+MDL-018,Kredi Limiti Optimizasyonu,Bireysel müşterilerin risk profiline göre optimal kredi limitini belirleme
+MDL-019,Duygu Analizi - Sosyal Medya,Sosyal medya ve haber kaynaklarından banka hakkındaki duyguları analiz etme
+MDL-020,ATM Nakit Talep Tahmini,ATM lokasyonlarındaki nakit çekim taleplerini zaman serisi ile öngörme
+MDL-021,Mortgage Değerleme Modeli,Konut kredisi başvurularında gayrimenkul değerini otomatik tahmin etme
+MDL-022,Bireysel Kredi Risk Skoru,Bireysel bankacılık müşterilerinin risk seviyesini skorlayarak kredi kararı destekleme
+MDL-023,İşlem Anomali Tespiti,Bankacılık işlemlerinde olağandışı desenleri istatistiksel yöntemlerle tespit etme
+MDL-024,Müşteri Memnuniyet Tahmini,NPS ve anket verilerine dayanarak müşteri memnuniyet skorunu tahmin etme
+MDL-025,Sigorta Hasar Tahmini,Sigorta poliçelerinde hasar gerçekleşme olasılığını ve tutarını öngörme
+MDL-026,Regülasyon Uyum Kontrolü,Banka işlemlerinin BDDK ve SPK düzenlemelerine uyumunu otomatik kontrol etme
+MDL-027,Kampanya Hedefleme Modeli,Pazarlama kampanyalarında en yüksek dönüşüm potansiyeline sahip müşteri segmentini belirleme
+MDL-028,Kurumsal Kredi Derecelendirme,Kurumsal müşterilerin finansal tablolarına göre kredi notunu hesaplama
+MDL-029,Çağrı Merkezi Konuşma Analizi,Çağrı merkezi görüşmelerini konuşma analitiği ile değerlendirme ve sınıflandırma
+MDL-030,Tahsilat Önceliklendirme,Gecikmiş kredilerde tahsilat stratejisini müşteri bazlı optimize etme
+MDL-031,Dijital Kanal Kullanım Tahmini,Müşterilerin mobil ve internet bankacılığı kullanım eğilimlerini tahmin etme
+MDL-032,Ürün Fiyatlama Modeli,Mevduat ve kredi ürünlerinde dinamik faiz oranı optimizasyonu yapma
+MDL-033,Fraud Ring Tespiti,Organize dolandırıcılık ağlarını graf analizi ile tespit etme
+MDL-034,Bütçe Planlama Tahmini,Banka birimlerinin gelecek dönem bütçe ihtiyaçlarını tahmin etme
+MDL-035,Personel Performans Analizi,Banka çalışanlarının performans metriklerini analiz ederek gelişim alanlarını belirleme

@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Streamlit
+.streamlit/
+!/.streamlit/config.toml
+
+# MacOS
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+
+# Other
+*.log
