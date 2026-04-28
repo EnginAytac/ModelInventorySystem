@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 streamlit==1.42.0
 pandas==2.2.3
 thefuzz==0.22.1
