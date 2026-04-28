@@ -43,118 +43,275 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("""<style>
-html, body, p, h1, h2, h3, h4, h5, h6, span, div, label, input, textarea, button {
+KT_CSS = """
+<style>
+/* ── Font Ayarları (İkonları bozmayan güvenli seçiciler) ── */
+p, h1, h2, h3, h4, h5, h6, label, input, textarea, button, li {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
-.stApp { background-color: #ffffff; }
-.main .block-container { padding-top: 1.5rem; padding-bottom: 2rem; max-width: 1200px; }
-h1, h2, h3, h4, h5, h6 { color: #1a1a1a !important; }
-.main p, .main span, .main label { color: #333333; }
 
-.header-container {
-    background: linear-gradient(135deg, #009e7e 0%, #00a884 50%, #00b890 100%);
-    padding: 2rem 2.5rem; border-radius: 14px; margin-bottom: 1.8rem;
-    box-shadow: 0 4px 20px rgba(0,168,132,0.3); position: relative; overflow: hidden;
+.stApp {
+    background-color: #f7f9fa;
 }
-.header-container::before {
-    content:''; position:absolute; top:-60%; right:-15%;
-    width:350px; height:350px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    border-radius:50%;
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 1100px;
+}
+
+/* ── Yeni, Şık Kuveyt Türk Başlık Alanı (Corporate Style) ── */
+.header-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border-top: 5px solid #00a884;
+    border-bottom: 1px solid #eaebec;
+    border-left: 1px solid #eaebec;
+    border-right: 1px solid #eaebec;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+.header-card::after {
+    content: '🏦';
+    position: absolute;
+    right: 2rem;
+    bottom: -1rem;
+    font-size: 8rem;
+    opacity: 0.03;
+    pointer-events: none;
 }
 .header-title {
-    color:#ffffff; font-size:1.85rem; font-weight:800; margin:0;
-    position:relative; z-index:1;
+    color: #1a1a1a !important;
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    margin: 0 0 0.5rem 0 !important;
+    letter-spacing: -0.5px !important;
+}
+.header-title-accent {
+    color: #00a884;
 }
 .header-subtitle {
-    color:rgba(255,255,255,0.9); font-size:0.95rem; margin-top:0.5rem;
-    font-weight:400; position:relative; z-index:1;
-}
-.method-badge {
-    display:inline-block; padding:5px 16px; border-radius:20px;
-    font-size:0.75rem; font-weight:600; letter-spacing:0.5px;
-    text-transform:uppercase; margin-top:0.7rem; position:relative; z-index:1;
-    background:rgba(255,255,255,0.2); color:#ffffff;
-    border:1px solid rgba(255,255,255,0.4);
+    color: #555555 !important;
+    font-size: 1.05rem !important;
+    font-weight: 400 !important;
+    margin: 0 !important;
+    max-width: 800px;
+    line-height: 1.5;
 }
 
+.method-badge {
+    align-self: flex-start;
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 1.2rem;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+/* ── İstatistik Kartları ── */
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #eaebec;
+    border-radius: 10px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    border-bottom: 3px solid #00a884;
+    transition: transform 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,168,132,0.1);
+}
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #00a884;
+    margin: 0 0 0.2rem 0;
+}
+.stat-label {
+    font-size: 0.8rem;
+    color: #777777;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* ── Sonuç Kartları ── */
 .result-card {
-    background:#ffffff; border:1px solid #e0e0e0; border-radius:10px;
-    padding:1.3rem 1.5rem; margin-bottom:0.9rem;
-    transition:all 0.25s ease; box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    background: #ffffff;
+    border: 1px solid #eaebec;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    border-left: 4px solid #eaebec;
+    transition: all 0.2s;
 }
 .result-card:hover {
-    border-color:#00a884; box-shadow:0 4px 16px rgba(0,168,132,0.15);
-    transform:translateY(-1px);
+    border-left-color: #00a884;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-.result-model-name { color:#1a1a1a; font-size:1.05rem; font-weight:700; margin-bottom:0.25rem; }
-.result-model-id { color:#00a884; font-size:0.78rem; font-weight:600; margin-bottom:0.5rem; }
-.result-purpose { color:#555555; font-size:0.88rem; line-height:1.55; margin-bottom:0.7rem; }
-
-.score-badge { display:inline-block; padding:5px 16px; border-radius:20px; font-size:0.85rem; font-weight:700; }
-.score-high { background:#fff1f0; color:#d32f2f; border:1px solid #ffcdd2; }
-.score-medium { background:#fff8e1; color:#e65100; border:1px solid #ffe0b2; }
-.score-low { background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
-
-.stat-card {
-    background:#00a884; border:none; border-radius:10px;
-    padding:1.2rem 1.3rem; text-align:center;
-    box-shadow:0 2px 10px rgba(0,168,132,0.2);
+.result-model-name {
+    color: #1a1a1a;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
 }
-.stat-value { font-size:1.9rem; font-weight:800; color:#ffffff; margin:0; }
-.stat-label { font-size:0.75rem; color:rgba(255,255,255,0.85); text-transform:uppercase; letter-spacing:0.8px; margin-top:0.3rem; font-weight:500; }
+.result-model-id {
+    display: inline-block;
+    background: #f0f2f5;
+    color: #555555;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+}
+.result-purpose {
+    color: #444444;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
 
+/* ── Skor Badge ── */
+.score-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.score-high { background: #fff1f0; color: #d32f2f; border: 1px solid #ffcdd2; }
+.score-medium { background: #fff8e1; color: #e65100; border: 1px solid #ffe0b2; }
+.score-low { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+
+/* ── Bildirim Kutuları ── */
 .warning-box {
-    background:#fff8f6; border:1px solid #ffcdd2; border-left:4px solid #d32f2f;
-    border-radius:8px; padding:1.1rem 1.4rem; margin:1.5rem 0;
+    background: #fff8f6; border: 1px solid #ffcdd2; border-left: 4px solid #d32f2f;
+    border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0;
 }
-.warning-box h4 { color:#c62828; margin:0 0 0.3rem 0; font-size:1rem; font-weight:700; }
-.warning-box p { color:#555555; margin:0; font-size:0.88rem; line-height:1.5; }
+.warning-box h4 { color: #c62828; margin: 0 0 0.3rem 0; font-size: 1.05rem; font-weight: 700; }
+.warning-box p { color: #555555; margin: 0; font-size: 0.9rem; line-height: 1.5; }
 
 .success-box {
-    background:#f1f9f5; border:1px solid #c8e6c9; border-left:4px solid #00a884;
-    border-radius:8px; padding:1.1rem 1.4rem; margin:1.5rem 0;
+    background: #f1f9f5; border: 1px solid #c8e6c9; border-left: 4px solid #00a884;
+    border-radius: 8px; padding: 1.2rem 1.5rem; margin: 1.5rem 0;
 }
-.success-box h4 { color:#00896b; margin:0 0 0.3rem 0; font-size:1rem; font-weight:700; }
-.success-box p { color:#555555; margin:0; font-size:0.88rem; line-height:1.5; }
+.success-box h4 { color: #00896b; margin: 0 0 0.3rem 0; font-size: 1.05rem; font-weight: 700; }
+.success-box p { color: #555555; margin: 0; font-size: 0.9rem; line-height: 1.5; }
 
 .llm-rationale {
-    background:#f3f0ff; border:1px solid #d9d0f5; border-radius:8px;
-    padding:0.7rem 1rem; margin-top:0.7rem; font-size:0.84rem;
-    color:#5b21b6; font-style:italic; line-height:1.5;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 0.8rem 1rem; margin-top: 1rem; font-size: 0.85rem;
+    color: #475569; font-style: italic; line-height: 1.5;
 }
 
-[data-testid="stSidebar"] { background:#00a884 !important; }
-[data-testid="stSidebar"] * { color:#ffffff !important; }
-[data-testid="stSidebar"] small { color:rgba(255,255,255,0.75) !important; }
-
-.stButton > button[kind="primary"],
-.stButton > button[data-testid="stBaseButton-primary"] {
-    background:#f7941e !important; border:none !important; color:#ffffff !important;
-    font-weight:700 !important; border-radius:25px !important;
-    padding:0.55rem 2rem !important; transition:all 0.25s ease !important;
-    box-shadow:0 2px 8px rgba(247,148,30,0.3) !important; font-size:0.9rem !important;
+/* ── Sidebar İyileştirmeleri ── */
+[data-testid="stSidebar"] {
+    background-color: #009e7e;
+    background-image: linear-gradient(180deg, #008a6e 0%, #00a884 100%);
 }
-.stButton > button[kind="primary"]:hover,
-.stButton > button[data-testid="stBaseButton-primary"]:hover {
-    background:#e8850e !important;
-    box-shadow:0 4px 14px rgba(247,148,30,0.4) !important;
-    transform:translateY(-1px) !important;
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3,
+[data-testid="stSidebar"] label {
+    color: #ffffff !important;
+}
+[data-testid="stSidebar"] small {
+    color: rgba(255, 255, 255, 0.8) !important;
 }
 
-.custom-divider { border:0; height:1px; background:linear-gradient(90deg, transparent, #e0e0e0, transparent); margin:1.5rem 0; }
+/* Sidebar kapatma butonunu sürekli görünür yap */
+[data-testid="stSidebarCollapseButton"], 
+[data-testid="baseButton-header"], 
+button[kind="header"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: #ffffff !important;
+}
+[data-testid="stSidebarCollapseButton"]:hover, 
+[data-testid="baseButton-header"]:hover, 
+button[kind="header"]:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+[data-testid="stSidebarCollapseButton"] * {
+    color: #ffffff !important;
+}
+/* Slider değerleri görünürlüğü */
+[data-testid="stSidebar"] [data-testid="stTickBar"] div {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="slider"] {
+    margin-top: 5px;
+}
+[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: #ffffff !important;
+}
+[data-testid="stSidebar"] div[data-baseweb="select"] > div * {
+    color: #ffffff !important;
+}
+
+/* ── Buton ve Girdiler ── */
+.stButton > button[kind="primary"] {
+    background-color: #f7941e !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 0.6rem 2rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 6px rgba(247, 148, 30, 0.2) !important;
+    font-size: 0.95rem !important;
+}
+.stButton > button[kind="primary"]:hover {
+    background-color: #e8850e !important;
+    box-shadow: 0 6px 12px rgba(247, 148, 30, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
 
 .stTextArea textarea {
-    background:#ffffff !important; border:1.5px solid #d0d0d0 !important;
-    border-radius:8px !important; color:#1a1a1a !important; font-size:0.9rem !important;
+    background: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    color: #1a1a1a !important;
+    font-size: 0.95rem !important;
+    padding: 1rem !important;
 }
-.stTextArea textarea:focus { border-color:#00a884 !important; box-shadow:0 0 0 2px rgba(0,168,132,0.15) !important; }
-.stTextArea label p { color:#333333 !important; }
+.stTextArea textarea:focus {
+    border-color: #00a884 !important;
+    box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.2) !important;
+}
 
-div[data-testid="stExpander"] { background:#ffffff; border:1px solid #e0e0e0; border-radius:10px; }
-div[data-testid="stExpander"] summary span p { color:#333333 !important; }
-</style>""", unsafe_allow_html=True)
+.custom-divider {
+    border: 0;
+    height: 1px;
+    background: #e5e7eb;
+    margin: 2rem 0;
+}
+.sidebar-divider {
+    border: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 1.5rem 0;
+}
+</style>
+"""
+
+st.markdown(KT_CSS, unsafe_allow_html=True)
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -179,7 +336,7 @@ def get_score_class(score: float) -> str:
 def get_method_display(method: str) -> tuple[str, str, str]:
     mapping = {
         "text": ("📝 Text (Fuzzy Matching)", "method-text", "Kelime bazlı benzerlik — thefuzz kütüphanesi ile token set ratio"),
-        "embedding": ("🧠 Embedding (Semantic)", "method-embedding", f"Semantik benzerlik — {EMBEDDING_MODEL} modeli ile kosinüs benzerliği"),
+        "embedding": ("🧠 Embedding (Semantic)", "method-embedding", f"Semantik benzerlik — {EMBEDDING_MODEL} modeli kosinüs benzerliği"),
         "llm": ("🤖 LLM (Mantıksal Analiz)", "method-llm", "Büyük dil modeli tabanlı fonksiyonel analiz (mock simülasyon)"),
     }
     return mapping.get(method, ("❓ Bilinmeyen", "method-text", ""))
@@ -190,7 +347,7 @@ def get_method_display(method: str) -> tuple[str, str, str]:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 with st.sidebar:
     st.markdown("### ⚙️ Analiz Ayarları")
-    st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
 
     method_options = {
         "📝 Text (Fuzzy Matching)": "text",
@@ -205,7 +362,7 @@ with st.sidebar:
         "Karşılaştırma Metodu",
         options=default_display_keys,
         index=default_idx,
-        help="Benzerlik analizi için kullanılacak yöntemi seçin.",
+        help="Analiz için kullanılacak yöntemi seçin.",
     )
     selected_method = method_options[selected_method_label]
 
@@ -225,15 +382,15 @@ with st.sidebar:
         help="Gösterilecek en fazla benzer model sayısı.",
     )
 
-    st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
 
     method_display, method_css, method_desc = get_method_display(selected_method)
     st.markdown("**Seçili Metot Detayı:**")
     st.markdown(f"<small>{method_desc}</small>", unsafe_allow_html=True)
 
-    st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+    st.markdown("<hr class='sidebar-divider'>", unsafe_allow_html=True)
     st.markdown(
-        "<small style='color: rgba(255,255,255,0.7);'>© 2026 Kuveyt Türk AI Lab<br>Model Envanter Yönetim Sistemi v1.0</small>",
+        "<small>© 2026 Kuveyt Türk AI Lab<br>Model Envanter Yönetim Sistemi v1.0</small>",
         unsafe_allow_html=True,
     )
 
@@ -242,18 +399,20 @@ with st.sidebar:
 # Ana Başlık
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 method_display, method_css, _ = get_method_display(selected_method)
+
 st.markdown(
     f"""
-    <div class="header-container">
-        <h1 class="header-title">{APP_ICON} {APP_TITLE}</h1>
+    <div class="header-card">
+        <h1 class="header-title">Model Envanteri <span class="header-title-accent">Benzerlik Analizi</span></h1>
         <p class="header-subtitle">
-            Banka içi mükerrer model taleplerini tespit eden akıllı benzerlik analiz platformu
+            Banka içindeki model geliştirme taleplerinin mevcut envanterle mükerrerlik riskini analiz eden akıllı platform.
         </p>
-        <span class="method-badge">{method_display}</span>
+        <div class="method-badge">{method_display}</div>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Veri Yükleme
@@ -275,19 +434,19 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown(
-        f'<div class="stat-card"><p class="stat-value">{len(inventory_df)}</p><p class="stat-label">Envanterdeki Model</p></div>',
+        f'<div class="stat-card"><p class="stat-value">{len(inventory_df)}</p><p class="stat-label">Kayıtlı Model</p></div>',
         unsafe_allow_html=True,
     )
 
 with col2:
     st.markdown(
-        f'<div class="stat-card"><p class="stat-value">%{threshold}</p><p class="stat-label">Benzerlik Eşiği</p></div>',
+        f'<div class="stat-card"><p class="stat-value">%{threshold}</p><p class="stat-label">Risk Eşiği</p></div>',
         unsafe_allow_html=True,
     )
 
 with col3:
     st.markdown(
-        f'<div class="stat-card"><p class="stat-value">{selected_method.upper()}</p><p class="stat-label">Aktif Metot</p></div>',
+        f'<div class="stat-card"><p class="stat-value">{selected_method.upper()}</p><p class="stat-label">Aktif Algoritma</p></div>',
         unsafe_allow_html=True,
     )
 
@@ -300,23 +459,23 @@ st.markdown("### 📋 Yeni Model Talebi")
 
 query = st.text_area(
     "Model talep açıklamanızı girin:",
-    placeholder="Örnek: Müşteri kredi başvurularında temerrüt riskini tahmin eden bir makine öğrenmesi modeli geliştirmek istiyoruz.",
-    height=120,
-    help="Talebin ne kadar detaylı girilirse, benzerlik analizi o kadar doğru sonuç üretir.",
+    placeholder="Örnek: Operasyonel süreçlerdeki müşteri şikayetlerini doğal dil işleme ile kategorize eden yeni bir AI modeli...",
+    height=140,
+    label_visibility="collapsed"
 )
 
 col_btn1, col_btn2 = st.columns([1, 4])
 with col_btn1:
-    analyze_btn = st.button("🔍 Analiz Et", type="primary", use_container_width=True)
+    analyze_btn = st.button("Analiz Et", type="primary", use_container_width=True)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Analiz ve Sonuçlar
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 if analyze_btn:
     if not query or not query.strip():
-        st.warning("⚠️ Lütfen bir model talep açıklaması girin.")
+        st.warning("⚠️ Lütfen analiz için bir model talep açıklaması girin.")
     else:
-        with st.spinner(f"🔄 {method_display} yöntemi ile envanter taranıyor..."):
+        with st.spinner(f"Arkaplanda {method_display} yöntemi ile envanter taranıyor, metinler karşılaştırılıyor..."):
             try:
                 results_df = analyze_similarity(query, inventory_df, method=selected_method)
             except Exception as e:
@@ -335,14 +494,14 @@ if analyze_btn:
                     <p>
                         Girilen talep ile envanterdeki <strong>{len(risk_df)}</strong> model arasında
                         %{threshold} ve üzeri benzerlik skoru tespit edildi.
-                        Lütfen bu modelleri inceleyerek mükerrer geliştirme riskini değerlendirin.
+                        Lütfen ilgili ekiplerle iletişime geçerek mükerrer efor riskini değerlendirin.
                     </p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            st.markdown("### 🚨 Mükerrer Risk Taşıyan Modeller")
+            st.markdown("### 🚨 Kritik Risk Taşıyan Modeller")
 
             for idx, row in risk_df.iterrows():
                 score = row["Benzerlik_Skoru"]
@@ -351,12 +510,12 @@ if analyze_btn:
                 card_html = f"""
                 <div class="result-card">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div style="flex:1;">
+                        <div style="flex:1; padding-right: 1rem;">
                             <p class="result-model-name">{row['Model_Adı']}</p>
-                            <p class="result-model-id">{row['Model_ID']}</p>
+                            <span class="result-model-id">{row['Model_ID']}</span>
                             <p class="result-purpose">{row['Model_Amacı']}</p>
                         </div>
-                        <div>
+                        <div style="text-align: right;">
                             <span class="score-badge {score_class}">%{score}</span>
                         </div>
                     </div>
@@ -365,7 +524,7 @@ if analyze_btn:
                 if selected_method == "llm" and "LLM_Gerekçe" in row:
                     card_html += f"""
                     <div class="llm-rationale">
-                        💡 <strong>LLM Gerekçesi:</strong> {row['LLM_Gerekçe']}
+                        <strong>AI Analiz Yorumu:</strong> {row['LLM_Gerekçe']}
                     </div>
                     """
 
@@ -378,9 +537,9 @@ if analyze_btn:
                 <div class="success-box">
                     <h4>✅ Mükerrer Risk Bulunamadı</h4>
                     <p>
-                        Girilen talep ile envanterdeki hiçbir model arasında
-                        %{threshold} üzeri benzerlik tespit edilmedi.
-                        Yeni model talebi güvenle oluşturulabilir.
+                        Girilen talep ile mevcut envanterdeki hiçbir model arasında
+                        %{threshold} üzerinde bir benzerlik tespit edilmedi.
+                        Yeni model talebini onay sürecine iletebilirsiniz.
                     </p>
                 </div>
                 """,
@@ -389,13 +548,13 @@ if analyze_btn:
 
         st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
 
-        with st.expander("📊 Tüm Analiz Sonuçlarını Görüntüle", expanded=False):
+        with st.expander("📊 Tüm Analiz Detaylarını Göster (Veri Tablosu)", expanded=False):
             display_df = results_df.head(max_results).copy()
 
             display_columns = {
-                "Model_ID": "Model ID",
+                "Model_ID": "ID",
                 "Model_Adı": "Model Adı",
-                "Model_Amacı": "Model Amacı",
+                "Model_Amacı": "Kapsam ve Amaç",
                 "Benzerlik_Skoru": "Benzerlik (%)",
             }
             display_df = display_df.rename(columns=display_columns)
@@ -409,8 +568,8 @@ if analyze_btn:
                 hide_index=True,
                 column_config={
                     "Benzerlik (%)": st.column_config.ProgressColumn(
-                        "Benzerlik (%)",
-                        help="Benzerlik skoru",
+                        "Skor",
+                        help="0-100 arası benzerlik skoru",
                         format="%d%%",
                         min_value=0,
                         max_value=100,
@@ -422,7 +581,7 @@ if analyze_btn:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Envanter Görüntüleme
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-st.markdown("<hr class='custom-divider'>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
 with st.expander("📁 Mevcut Model Envanterini Görüntüle", expanded=False):
     st.dataframe(
@@ -430,4 +589,4 @@ with st.expander("📁 Mevcut Model Envanterini Görüntüle", expanded=False):
         use_container_width=True,
         hide_index=True,
     )
-    st.caption(f"Toplam {len(inventory_df)} model kayıtlı.")
+    st.caption(f"Sistemde toplam {len(inventory_df)} aktif model kaydı bulunmaktadır.")
