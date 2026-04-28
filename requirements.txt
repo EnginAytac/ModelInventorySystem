@@ -1,7 +1,5 @@
-streamlit>=1.30.0
-pandas>=2.0.0
-numpy>=1.24.0
-thefuzz[speedup]>=0.20.0
-sentence-transformers>=2.2.0
-scikit-learn>=1.3.0
-torch>=2.0.0
+streamlit==1.42.0
+pandas==2.2.3
+thefuzz==0.22.1
+sentence-transformers==3.4.1
+google-generativeai==0.8.6
