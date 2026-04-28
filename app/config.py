@@ -34,7 +34,16 @@ EMBEDDING_MODEL: str = "paraphrase-multilingual-MiniLM-L12-v2"
 # ──────────────────────────────────────────────────────────────
 # LLM API Ayarları (Gemini 2.5 Flash)
 # ──────────────────────────────────────────────────────────────
-LLM_API_KEY: str = "AIzaSyDupleiJrfsYhaAC6oLG_yve1jjVRpsiIw"
+import streamlit as st
+import os
+
+try:
+    # Bulut ortamında (Streamlit Cloud) şifreli kasadan okur
+    LLM_API_KEY: str = st.secrets["LLM_API_KEY"]
+except Exception:
+    # Lokal ortamda veya kasa bulunamazsa çevre değişkenlerinden okur
+    LLM_API_KEY: str = os.environ.get("LLM_API_KEY", "")
+
 LLM_MODEL: str = "gemini-2.5-flash"
 
 # ──────────────────────────────────────────────────────────────

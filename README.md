@@ -44,6 +44,7 @@ Sistem, 3 farklı benzerlik analiz yöntemi sunar. Her yöntem farklı bir ihtiy
 ## Dizin Yapısı
 
 ```
+```text
 model_inventory_system/
 ├── app/
 │   ├── __init__.py        # Paket tanımı
@@ -79,11 +80,21 @@ source venv/bin/activate  # macOS/Linux
 # 3. Bağımlılıkları yükleyin
 pip install -r requirements.txt
 
-# 4. Uygulamayı başlatın
+# 4. (Opsiyonel) LLM API Kurulumu
+# LLM tabanlı analizi bilgisayarınızda test etmek isterseniz:
+# `.streamlit/secrets.toml.example` dosyasının adını `.streamlit/secrets.toml` olarak değiştirin
+# ve içerisine Google Gemini API anahtarınızı yazın.
+
+# 5. Uygulamayı başlatın
 streamlit run app/main.py
 ```
 
 Uygulama varsayılan olarak `http://localhost:8501` adresinde açılacaktır.
+
+---
+
+## ☁️ Streamlit Cloud Canlı Sürümü
+Uygulamayı indirmeden test etmek isterseniz, canlı Streamlit Cloud versiyonunda API anahtarı sisteme gömülü olduğu için ekstra bir ayar yapmadan **LLM Analiz** özelliğini kullanabilirsiniz.
 
 ---
 

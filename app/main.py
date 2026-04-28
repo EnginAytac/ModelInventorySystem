@@ -475,6 +475,12 @@ if analyze_btn:
     if not query or not query.strip():
         st.warning("⚠️ Lütfen analiz için bir model talep açıklaması girin.")
     else:
+        if selected_method == "llm":
+            from app.config import LLM_API_KEY
+            if not LLM_API_KEY or LLM_API_KEY == "":
+                st.warning("⚠️ **LLM API Anahtarı Eksik!**\nYapay zeka (LLM) analizini bilgisayarınızda kullanabilmek için lütfen `.streamlit/secrets.toml` dosyası oluşturup içine `LLM_API_KEY` değerini giriniz. Detaylar için README.md dosyasına bakabilirsiniz.", icon="🔑")
+                st.stop()
+                
         with st.spinner(f"Arkaplanda {method_display} yöntemi ile envanter taranıyor, metinler karşılaştırılıyor..."):
             try:
                 results_df = analyze_similarity(query, inventory_df, method=selected_method)
