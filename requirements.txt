@@ -1,6 +1,6 @@
 torch==2.11.0
 torchvision
-streamlit==1.42.0
+streamlit==1.56.0
 pandas==2.2.3
 thefuzz==0.22.1
 sentence-transformers==3.4.1

@@ -20,6 +20,7 @@ from app.config import (
     COMPARE_METHOD,
     EMBEDDING_MODEL,
     INVENTORY_PATH,
+    LLM_API_KEY,
     MAX_RESULTS,
     THRESHOLD,
 )
@@ -320,11 +321,34 @@ st.markdown(KT_CSS, unsafe_allow_html=True)
 
 @st.cache_data
 def load_inventory(path: str) -> pd.DataFrame:
+    """Envanter CSV dosyasını okuyup DataFrame olarak döndürür.
+
+    Streamlit'in ``@st.cache_data`` dekoratörü sayesinde aynı yol için
+    tekrar diskten okuma yapılmaz.
+
+    Args:
+        path: Proje kök dizinine göre CSV dosyasının göreli yolu.
+
+    Returns:
+        Envanter verilerini içeren DataFrame.
+
+    Raises:
+        FileNotFoundError: Belirtilen yolda dosya bulunamazsa.
+    """
     inventory_path = PROJECT_ROOT / path
     return pd.read_csv(inventory_path)
 
 
 def get_score_class(score: float) -> str:
+    """Benzerlik skoruna göre CSS sınıf adını döndürür.
+
+    Args:
+        score: 0-100 arasında benzerlik skoru.
+
+    Returns:
+        ``"score-high"``, ``"score-medium"`` veya ``"score-low"``
+        CSS sınıf adı.
+    """
     if score >= 80:
         return "score-high"
     elif score >= 60:
@@ -334,7 +358,15 @@ def get_score_class(score: float) -> str:
 
 
 def get_method_display(method: str) -> tuple[str, str, str]:
-    mapping = {
+    """Metot anahtarına karşılık gelen görüntü adı, CSS sınıfı ve açıklamayı döndürür.
+
+    Args:
+        method: Karşılaştırma metodu anahtarı (``"text"``, ``"embedding"``, ``"llm"``).
+
+    Returns:
+        ``(görüntü_adı, css_sınıfı, açıklama)`` üçlüsü.
+    """
+    mapping: dict[str, tuple[str, str, str]] = {
         "text": ("📝 Text (Fuzzy Matching)", "method-text", "Kelime bazlı benzerlik — thefuzz kütüphanesi ile token set ratio"),
         "embedding": ("🧠 Embedding (Semantic)", "method-embedding", f"Semantik benzerlik — {EMBEDDING_MODEL} modeli kosinüs benzerliği"),
         "llm": ("🤖 LLM (Mantıksal Analiz)", "method-llm", "Büyük dil modeli tabanlı fonksiyonel analiz (mock simülasyon)"),
@@ -476,8 +508,7 @@ if analyze_btn:
         st.warning("⚠️ Lütfen analiz için bir model talep açıklaması girin.")
     else:
         if selected_method == "llm":
-            from app.config import LLM_API_KEY
-            if not LLM_API_KEY or LLM_API_KEY == "":
+            if not LLM_API_KEY:
                 st.warning("⚠️ **LLM API Anahtarı Eksik!**\nYapay zeka (LLM) analizini bilgisayarınızda kullanabilmek için lütfen `.streamlit/secrets.toml` dosyası oluşturup içine `LLM_API_KEY` değerini giriniz. Detaylar için README.md dosyasına bakabilirsiniz.", icon="🔑")
                 st.stop()
                 

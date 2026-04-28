@@ -3,23 +3,20 @@ Kuveyt Türk AI Lab - Model Envanteri Benzerlik Analiz Sistemi
 Benzerlik Algoritmaları Modülü
 
 Bu modül, 3 farklı benzerlik analiz yöntemini içerir:
-  1. TEXT   — Fuzzy string matching (thefuzz)
+  1. TEXT      — Fuzzy string matching (thefuzz)
   2. EMBEDDING — Semantik benzerlik (sentence-transformers + cosine similarity)
-  3. LLM   — Büyük dil modeli tabanlı mantıksal analiz (mock/simülasyon)
+  3. LLM       — Büyük dil modeli tabanlı mantıksal analiz (Groq Llama 3)
 """
 
-from __future__ import annotations
-
-import hashlib
 import json
-import random
-from typing import Union
 
 import numpy as np
 import pandas as pd
+import streamlit as st
+from groq import Groq
 from thefuzz import fuzz
 
-from app.config import EMBEDDING_MODEL
+from app.config import EMBEDDING_MODEL, LLM_API_KEY, LLM_MODEL
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -28,14 +25,13 @@ from app.config import EMBEDDING_MODEL
 
 
 def compute_text_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    thefuzz kütüphanesi ile fuzzy string matching uygular.
+    """thefuzz kütüphanesi ile fuzzy string matching uygular.
 
     Hem model adı hem de model amacı üzerinden ayrı ayrı benzerlik
     skoru hesaplar ve ağırlıklı ortalama ile tek bir skor üretir.
 
     Ağırlıklar:
-        - Model Adı  : %15
+        - Model Adı   : %15
         - Model Amacı : %85
 
     Args:
@@ -43,14 +39,16 @@ def compute_text_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFr
         inventory_df: Envanter DataFrame'i (Model_ID, Model_Adı, Model_Amacı).
 
     Returns:
-        Benzerlik skoru (Benzerlik_Skoru sütunu) eklenmiş DataFrame.
+        Benzerlik skoru (Benzerlik_Skoru sütunu) eklenmiş, azalan sırada
+        sıralanmış DataFrame.
     """
-    results = []
+    query_lower = query.lower()
+    results: list[dict] = []
 
     for _, row in inventory_df.iterrows():
         # Token set ratio — kelime sırası bağımsız eşleştirme
-        name_score = fuzz.token_set_ratio(query.lower(), str(row["Model_Adı"]).lower())
-        purpose_score = fuzz.token_set_ratio(query.lower(), str(row["Model_Amacı"]).lower())
+        name_score = fuzz.token_set_ratio(query_lower, str(row["Model_Adı"]).lower())
+        purpose_score = fuzz.token_set_ratio(query_lower, str(row["Model_Amacı"]).lower())
 
         # Ağırlıklı ortalama (Model adı ağırlığı düşürüldü, amaca odaklanıldı)
         combined_score = round(name_score * 0.15 + purpose_score * 0.85, 1)
@@ -73,75 +71,92 @@ def compute_text_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFr
 # 2) EMBEDDING — Semantik Benzerlik
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# Lazy-loaded model cache
+# Lazy-loaded model cache (modül seviyesinde tek örnek)
 _embedding_model = None
 
 
 def _get_embedding_model():
-    """Sentence-transformer modelini tembel yükleme ile döndürür."""
+    """Sentence-transformer modelini tembel yükleme (lazy loading) ile döndürür.
+
+    İlk çağrıda modeli indirip belleğe yükler ve bir sonraki çağrılarda
+    önbellekteki örneği yeniden kullanır. Yükleme süresince kullanıcıya
+    Streamlit bilgi mesajı gösterilir.
+
+    Returns:
+        Yüklenmiş ``SentenceTransformer`` model örneği.
+    """
     global _embedding_model
+
     if _embedding_model is None:
-        import streamlit as st
-        
-        # Kullanıcıya indirme/yükleme işlemi için bilgi veriyoruz (Bittiğinde kaybolacak)
-        placeholder = st.empty()
-        placeholder.info("📦 **Yapay Zeka Modeli Hazırlanıyor...** İlk kullanım olduğu için çok dilli semantik model (yaklaşık 470 MB) indiriliyor veya belleğe yükleniyor. Bu işlem 1-2 dakika sürebilir, lütfen bekleyiniz.")
-        
         from sentence_transformers import SentenceTransformer
+
+        placeholder = st.empty()
+        placeholder.info(
+            "📦 **Yapay Zeka Modeli Hazırlanıyor...** İlk kullanım olduğu için "
+            "çok dilli semantik model (yaklaşık 470 MB) indiriliyor veya belleğe "
+            "yükleniyor. Bu işlem 1-2 dakika sürebilir, lütfen bekleyiniz."
+        )
         _embedding_model = SentenceTransformer(EMBEDDING_MODEL)
-        
-        # Yükleme bittiğinde bilgi mesajını temizle
         placeholder.empty()
-        
+
     return _embedding_model
 
 
 def _cosine_similarity(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
-    """İki vektör arasındaki kosinüs benzerliğini hesaplar."""
-    dot = np.dot(vec_a, vec_b)
+    """İki vektör arasındaki kosinüs benzerliğini hesaplar.
+
+    Args:
+        vec_a: Birinci vektör.
+        vec_b: İkinci vektör.
+
+    Returns:
+        0.0 ile 1.0 arasında kosinüs benzerlik skoru; sıfır normlu
+        vektörler için 0.0 döner.
+    """
     norm_a = np.linalg.norm(vec_a)
     norm_b = np.linalg.norm(vec_b)
     if norm_a == 0 or norm_b == 0:
         return 0.0
-    return float(dot / (norm_a * norm_b))
+    return float(np.dot(vec_a, vec_b) / (norm_a * norm_b))
 
 
 def compute_embedding_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Sentence-transformers (all-MiniLM-L6-v2) ile semantik benzerlik hesaplar.
+    """Sentence-transformers ile semantik benzerlik hesaplar.
 
-    Her envanter kaydı için (Model_Adı + Model_Amacı) birleşik metnin
-    embedding vektörünü çıkarır ve sorgu ile kosinüs benzerliğini hesaplar.
+    Her envanter kaydı için (Model_Adı + Model_Amacı) alanlarının embedding
+    vektörlerini ayrı ayrı çıkarır ve sorgu ile ağırlıklı kosinüs benzerliğini
+    hesaplar.
+
+    Ağırlıklar:
+        - Model Adı   : %15
+        - Model Amacı : %85
 
     Args:
         query: Kullanıcının girdiği yeni model talep açıklaması.
         inventory_df: Envanter DataFrame'i.
 
     Returns:
-        Benzerlik skoru (0-100) eklenmiş, azalan sırada sıralanmış DataFrame.
+        Benzerlik skoru (0–100) eklenmiş, azalan sırada sıralanmış DataFrame.
     """
     model = _get_embedding_model()
 
-    # Sorgu embeddingi
-    query_embedding = model.encode(query, convert_to_numpy=True)
+    query_embedding: np.ndarray = model.encode(query, convert_to_numpy=True)
 
-    # Ad ve Amaç metinlerini listelere ayır
     name_texts = inventory_df["Model_Adı"].astype(str).tolist()
     purpose_texts = inventory_df["Model_Amacı"].astype(str).tolist()
 
-    # İki alanı ayrı ayrı vektörize et (Bu sayede ağırlıkları tam kontrol edebiliriz)
-    name_embeddings = model.encode(name_texts, convert_to_numpy=True)
-    purpose_embeddings = model.encode(purpose_texts, convert_to_numpy=True)
+    # İki alanı ayrı ayrı vektörize et (ağırlık kontrolü için)
+    name_embeddings: np.ndarray = model.encode(name_texts, convert_to_numpy=True)
+    purpose_embeddings: np.ndarray = model.encode(purpose_texts, convert_to_numpy=True)
 
-    results = []
-    for idx, row in inventory_df.iterrows():
-        # Ayrı ayrı kosinüs benzerliklerini hesapla
-        name_sim = _cosine_similarity(query_embedding, name_embeddings[idx])
-        purpose_sim = _cosine_similarity(query_embedding, purpose_embeddings[idx])
-        
+    results: list[dict] = []
+    # enumerate kullanarak index'i güvenli şekilde sıfırdan alıyoruz
+    for i, (_, row) in enumerate(inventory_df.iterrows()):
+        name_sim = _cosine_similarity(query_embedding, name_embeddings[i])
+        purpose_sim = _cosine_similarity(query_embedding, purpose_embeddings[i])
+
         # Ağırlıklı birleştirme: İsim %15, Amaç %85 etki etsin
         combined_sim = (name_sim * 0.15) + (purpose_sim * 0.85)
-        
         score = round(combined_sim * 100, 1)  # Yüzdelik dönüşüm
 
         results.append(
@@ -159,33 +174,40 @@ def compute_embedding_similarity(query: str, inventory_df: pd.DataFrame) -> pd.D
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 3) LLM — Büyük Dil Modeli Tabanlı Analiz (Mock / Simülasyon)
+# 3) LLM — Büyük Dil Modeli Tabanlı Analiz (Groq Llama 3)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-def compute_llm_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
+def _build_inventory_prompt_lines(inventory_df: pd.DataFrame) -> str:
+    """Envanter DataFrame'inden LLM prompt'u için liste formatı oluşturur.
+
+    Args:
+        inventory_df: Envanter DataFrame'i.
+
+    Returns:
+        Her satırı JSON benzeri bir string olan, satır sonları ile
+        ayrılmış envanter metin bloğu.
     """
-    Groq (Llama 3) tabanlı mantıksal benzerlik analizi (Toplu İşlem).
+    lines = [
+        f'- {{"Model_ID": "{row["Model_ID"]}", "Model_Adı": "{row["Model_Adı"]}", '
+        f'"Model_Amacı": "{row["Model_Amacı"]}"}}'
+        for _, row in inventory_df.iterrows()
+    ]
+    return "\n".join(lines)
+
+
+def _build_llm_prompt(query: str, inventory_df: pd.DataFrame) -> str:
+    """Groq API'ye gönderilecek analiz prompt metnini oluşturur.
+
+    Args:
+        query: Kullanıcının girdiği yeni model talep açıklaması.
+        inventory_df: Envanter DataFrame'i.
+
+    Returns:
+        Tam prompt metni.
     """
-    import json
-    from groq import Groq
-    from app.config import LLM_API_KEY, LLM_MODEL
-
-    if not LLM_API_KEY:
-        raise ValueError("LLM_API_KEY bulunamadı. Lütfen config.py dosyasını kontrol ediniz.")
-
-    client = Groq(api_key=LLM_API_KEY)
-    
-    # Modelleri toplu (batch) prompt için listele
-    inventory_data = []
-    for _, row in inventory_df.iterrows():
-        inventory_data.append(
-            f'- {{"Model_ID": "{row["Model_ID"]}", "Model_Adı": "{row["Model_Adı"]}", "Model_Amacı": "{row["Model_Amacı"]}"}}'
-        )
-    
-    inventory_str = "\n".join(inventory_data)
-
-    prompt = f"""Sen Kuveyt Türk Bankası için çalışan bir Yapay Zeka Model Yönetim Uzmanısın.
+    inventory_str = _build_inventory_prompt_lines(inventory_df)
+    return f"""Sen Kuveyt Türk Bankası için çalışan bir Yapay Zeka Model Yönetim Uzmanısın.
 Görev: Kullanıcının talep ettiği YENİ MODEL ile envanterdeki MEVCUT MODELLERİ karşılaştırmak.
 
 [YENİ MODEL TALEBİ]:
@@ -217,53 +239,93 @@ Yanıtın KESİNLİKLE aşağıdaki JSON formatında geçerli bir JSON objesi ol
 }}
 """
 
+
+def _parse_llm_response(raw_text: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
+    """LLM'den dönen ham JSON metnini parse edip envanter ile birleştirir.
+
+    Args:
+        raw_text: Groq API'den alınan ham JSON string.
+        inventory_df: Orijinal envanter DataFrame'i.
+
+    Returns:
+        Benzerlik skoru ve LLM gerekçesi eklenmiş, azalan sırada
+        sıralanmış DataFrame.
+    """
+    json_data = json.loads(raw_text)
+    json_results = json_data.get("sonuclar", [])
+    llm_df = pd.DataFrame(json_results)
+
+    # Orijinal DataFrame ile Model_ID bazlı birleştirme
+    merged_df = pd.merge(inventory_df, llm_df, on="Model_ID", how="left")
+
+    # Eksik değerleri varsayılanlarla doldur
+    merged_df["skor"] = merged_df["skor"].fillna(0).astype(int)
+    merged_df["gerekce"] = merged_df["gerekce"].fillna("LLM bu modeli değerlendiremedi.")
+
+    # UI ile uyumlu sütun adlarına çevir
+    merged_df = merged_df.rename(
+        columns={"skor": "Benzerlik_Skoru", "gerekce": "LLM_Gerekçe"}
+    )
+    merged_df = merged_df.sort_values("Benzerlik_Skoru", ascending=False).reset_index(drop=True)
+    return merged_df
+
+
+def compute_llm_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
+    """Groq (Llama 3) tabanlı mantıksal benzerlik analizi yapar (Toplu İşlem).
+
+    Tüm envanter modelleri tek bir prompt içinde LLM'e gönderilir;
+    dönen JSON yanıtı parse edilerek benzerlik skoru ve gerekçe
+    sütunları DataFrame'e eklenir.
+
+    Args:
+        query: Kullanıcının girdiği yeni model talep açıklaması.
+        inventory_df: Envanter DataFrame'i.
+
+    Returns:
+        Benzerlik skoru ve LLM gerekçesi eklenmiş, azalan sırada
+        sıralanmış DataFrame. API hatası durumunda tüm skorlar 0
+        olarak döner.
+
+    Raises:
+        ValueError: LLM_API_KEY tanımlı değilse.
+    """
+    if not LLM_API_KEY:
+        raise ValueError("LLM_API_KEY bulunamadı. Lütfen config.py dosyasını kontrol ediniz.")
+
+    client = Groq(api_key=LLM_API_KEY)
+    prompt = _build_llm_prompt(query, inventory_df)
+
     try:
         response = client.chat.completions.create(
             model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_object"},
-            temperature=0.1
+            temperature=0.1,
         )
-        
         raw_text = response.choices[0].message.content.strip()
-        json_data = json.loads(raw_text)
-        
-        # Groq json_object formatı gereği kök dizinde 'sonuclar' listesi dönmesini istedik
-        json_results = json_data.get("sonuclar", [])
-        llm_df = pd.DataFrame(json_results)
-        
-        # Orijinal DataFrame ile birleştir (Model_ID bazlı)
-        merged_df = pd.merge(inventory_df, llm_df, on="Model_ID", how="left")
-        
-        # Boş kalanlar olursa 0 ata
-        merged_df["skor"] = merged_df["skor"].fillna(0).astype(int)
-        merged_df["gerekce"] = merged_df["gerekce"].fillna("LLM bu modeli değerlendiremedi.")
-        
-        # UI ile uyumlu hale getir
-        merged_df = merged_df.rename(columns={
-            "skor": "Benzerlik_Skoru", 
-            "gerekce": "LLM_Gerekçe"
-        })
-        
-        merged_df = merged_df.sort_values("Benzerlik_Skoru", ascending=False).reset_index(drop=True)
-        return merged_df
+        return _parse_llm_response(raw_text, inventory_df)
 
     except Exception as e:
-        import streamlit as st
         st.error(f"LLM API Hatası: {str(e)}")
-        # Uygulama çökmesin diye boş DataFrame dön
-        empty_df = inventory_df.copy()
-        empty_df["Benzerlik_Skoru"] = 0
-        empty_df["LLM_Gerekçe"] = "API Hatası."
-        return empty_df
+        # Uygulama çökmesin diye hata durumunda boş skorlu DataFrame dön
+        fallback_df = inventory_df.copy()
+        fallback_df["Benzerlik_Skoru"] = 0
+        fallback_df["LLM_Gerekçe"] = "API Hatası."
+        return fallback_df
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # Ana Dispatcher Fonksiyonu
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+_DISPATCH: dict[str, callable] = {
+    "text": compute_text_similarity,
+    "embedding": compute_embedding_similarity,
+    "llm": compute_llm_similarity,
+}
 
 
 def analyze_similarity(
@@ -271,32 +333,25 @@ def analyze_similarity(
     inventory_df: pd.DataFrame,
     method: str = "text",
 ) -> pd.DataFrame:
-    """
-    Seçilen metoda göre uygun benzerlik analiz fonksiyonunu çağırır.
+    """Seçilen metoda göre uygun benzerlik analiz fonksiyonunu çağırır.
 
     Args:
         query: Yeni model talep açıklaması.
         inventory_df: Model envanteri DataFrame'i.
-        method: Karşılaştırma metodu ("text", "embedding", "llm").
+        method: Karşılaştırma metodu (``"text"``, ``"embedding"``, ``"llm"``).
 
     Returns:
-        Skorlanmış ve sıralanmış DataFrame.
+        Skorlanmış ve azalan sırada sıralanmış DataFrame.
 
     Raises:
         ValueError: Geçersiz metot seçimi durumunda.
     """
     method = method.lower().strip()
 
-    dispatch = {
-        "text": compute_text_similarity,
-        "embedding": compute_embedding_similarity,
-        "llm": compute_llm_similarity,
-    }
-
-    if method not in dispatch:
+    if method not in _DISPATCH:
         raise ValueError(
             f"Geçersiz karşılaştırma metodu: '{method}'. "
-            f"Desteklenen metodlar: {list(dispatch.keys())}"
+            f"Desteklenen metodlar: {list(_DISPATCH.keys())}"
         )
 
-    return dispatch[method](query, inventory_df)
+    return _DISPATCH[method](query, inventory_df)
