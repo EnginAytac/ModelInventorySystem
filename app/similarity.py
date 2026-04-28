@@ -52,8 +52,8 @@ def compute_text_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFr
         name_score = fuzz.token_set_ratio(query.lower(), str(row["Model_Adı"]).lower())
         purpose_score = fuzz.token_set_ratio(query.lower(), str(row["Model_Amacı"]).lower())
 
-        # Ağırlıklı ortalama
-        combined_score = round(name_score * 0.40 + purpose_score * 0.60, 1)
+        # Ağırlıklı ortalama (Model adı ağırlığı düşürüldü, amaca odaklanıldı)
+        combined_score = round(name_score * 0.15 + purpose_score * 0.85, 1)
 
         results.append(
             {
@@ -116,10 +116,10 @@ def compute_embedding_similarity(query: str, inventory_df: pd.DataFrame) -> pd.D
     # Sorgu embeddingi
     query_embedding = model.encode(query, convert_to_numpy=True)
 
-    # Envanter metinlerini birleştir
-    inventory_texts = (
-        inventory_df["Model_Adı"].astype(str) + " — " + inventory_df["Model_Amacı"].astype(str)
-    ).tolist()
+    # Embedding performansını artırmak için SADECE Model Amacını vektörize ediyoruz.
+    # Kullanıcılar isim değil işlem ("kredi riski hesaplama" vb.) yazdığı için
+    # model adı gürültü (noise) yaratıyor.
+    inventory_texts = inventory_df["Model_Amacı"].astype(str).tolist()
 
     # Toplu embedding
     inventory_embeddings = model.encode(inventory_texts, convert_to_numpy=True)
@@ -164,7 +164,8 @@ Bu iki modelin birbirinin mükerrer veya çok benzeri olup olmadığını analiz
 
 ### Görev:
 1. İki modelin fonksiyonel örtüşme oranını 0-100 arasında bir skor ile değerlendir.
-2. Kısa bir gerekçe yaz.
+2. Değerlendirme yaparken "Model Amacı"na %90, "Model Adı"na %10 ağırlık ver.
+3. Kısa bir gerekçe yaz.
 
 Yanıtını şu JSON formatında ver:
 {{"skor": <0-100>, "gerekce": "<kısa açıklama>"}}
@@ -183,8 +184,10 @@ def _mock_llm_response(query: str, model_name: str, model_purpose: str) -> dict:
     combined = f"{query}|{model_name}|{model_purpose}"
     hash_val = int(hashlib.md5(combined.encode()).hexdigest()[:8], 16)
 
-    # Fuzzy matching bazlı temel skor
-    base_score = fuzz.token_set_ratio(query.lower(), f"{model_name} {model_purpose}".lower())
+    # Fuzzy matching bazlı amaca yönelik temel skor (Model adının ağırlığı çok düşük)
+    name_score = fuzz.token_set_ratio(query.lower(), model_name.lower())
+    purpose_score = fuzz.token_set_ratio(query.lower(), model_purpose.lower())
+    base_score = (name_score * 0.10) + (purpose_score * 0.90)
 
     # Hash'e dayalı küçük varyasyon (-5, +5 arası)
     variation = (hash_val % 11) - 5
