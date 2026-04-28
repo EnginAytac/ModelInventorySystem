@@ -165,23 +165,17 @@ def compute_embedding_similarity(query: str, inventory_df: pd.DataFrame) -> pd.D
 
 def compute_llm_similarity(query: str, inventory_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Google Gemini (LLM) tabanlı mantıksal benzerlik analizi (Toplu İşlem).
+    Groq (Llama 3) tabanlı mantıksal benzerlik analizi (Toplu İşlem).
     """
     import json
-    import google.generativeai as genai
+    from groq import Groq
     from app.config import LLM_API_KEY, LLM_MODEL
 
     if not LLM_API_KEY:
         raise ValueError("LLM_API_KEY bulunamadı. Lütfen config.py dosyasını kontrol ediniz.")
 
-    genai.configure(api_key=LLM_API_KEY)
+    client = Groq(api_key=LLM_API_KEY)
     
-    # Gemini 1.5 Flash - JSON modu aktif
-    model = genai.GenerativeModel(
-        LLM_MODEL,
-        generation_config={"response_mime_type": "application/json"}
-    )
-
     # Modelleri toplu (batch) prompt için listele
     inventory_data = []
     for _, row in inventory_df.iterrows():
@@ -213,24 +207,31 @@ HIZ VE TOKEN OPTİMİZASYONU (ÇOK ÖNEMLİ):
 - Skoru %40 ve üzerinde olan modeller için 1-2 cümlelik normal açıklayıcı bir gerekçe yaz.
 - Skoru %40'ın altında olan modeller için uzun cümleler kurma! Vakitten tasarruf etmek için MAKSİMUM 3-5 KELİMELİK çok kısa ve öz gerekçeler yaz (Örn: "Odak alanları tamamen farklı", "Farklı departmanlara hizmet ediyor", "Alakasız bir veri modeli").
 
-Yanıtın KESİNLİKLE aşağıdaki JSON formatında geçerli bir LİSTE olmalıdır. JSON harici hiçbir metin yazma:
-[
-  {{"Model_ID": "MOD-1", "skor": 45, "gerekce": "Kısa ve net Türkçe açıklama..."}},
-  ... (TÜM modeller için eksiksiz liste)
-]
+Yanıtın KESİNLİKLE aşağıdaki JSON formatında geçerli bir JSON objesi olmalıdır. JSON harici hiçbir metin yazma:
+{{
+  "sonuclar": [
+    {{"Model_ID": "MOD-1", "skor": 45, "gerekce": "Kısa ve net Türkçe açıklama..."}},
+    ... (TÜM modeller için eksiksiz liste)
+  ]
+}}
 """
 
     try:
-        response = model.generate_content(prompt)
-        raw_text = response.text.strip()
+        response = client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that strictly outputs JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.1
+        )
         
-        # Markdown bloklarını temizle (bazen model yine de koyabiliyor)
-        if raw_text.startswith("```json"):
-            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
-        elif raw_text.startswith("```"):
-            raw_text = raw_text.replace("```", "").strip()
-            
-        json_results = json.loads(raw_text)
+        raw_text = response.choices[0].message.content.strip()
+        json_data = json.loads(raw_text)
+        
+        # Groq json_object formatı gereği kök dizinde 'sonuclar' listesi dönmesini istedik
+        json_results = json_data.get("sonuclar", [])
         llm_df = pd.DataFrame(json_results)
         
         # Orijinal DataFrame ile birleştir (Model_ID bazlı)

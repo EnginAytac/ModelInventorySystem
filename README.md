@@ -83,7 +83,7 @@ pip install -r requirements.txt
 # 4. (Opsiyonel) LLM API Kurulumu
 # LLM tabanlı analizi bilgisayarınızda test etmek isterseniz:
 # `.streamlit/secrets.toml.example` dosyasının adını `.streamlit/secrets.toml` olarak değiştirin
-# ve içerisine Google Gemini API anahtarınızı yazın.
+# ve içerisine Groq API anahtarınızı yazın.
 
 # 5. Uygulamayı başlatın
 streamlit run app/main.py

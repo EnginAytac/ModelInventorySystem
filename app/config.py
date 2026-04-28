@@ -32,7 +32,7 @@ INVENTORY_PATH: str = "data/inventory.csv"
 EMBEDDING_MODEL: str = "paraphrase-multilingual-MiniLM-L12-v2"
 
 # ──────────────────────────────────────────────────────────────
-# LLM API Ayarları (Gemini 2.5 Flash)
+# LLM API Ayarları (Groq Llama 3)
 # ──────────────────────────────────────────────────────────────
 import streamlit as st
 import os
@@ -44,7 +44,7 @@ except Exception:
     # Lokal ortamda veya kasa bulunamazsa çevre değişkenlerinden okur
     LLM_API_KEY: str = os.environ.get("LLM_API_KEY", "")
 
-LLM_MODEL: str = "gemini-2.5-flash"
+LLM_MODEL: str = "llama-3.1-8b-instant"
 
 # ──────────────────────────────────────────────────────────────
 # Uygulama Genel Ayarları
